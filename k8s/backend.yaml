@@ -1,0 +1,83 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  labels:
+    app: backend
+spec:
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+        - name: backend
+          # 이미지를 넣어주세요.
+          image: krmp-d2hub-idock.9rum.cc/dev-test/repo_29a5ca74027c
+          env:
+            - name: TZ
+              value: Asia/Seoul
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: secret
+                  key: MYSQL_ROOT_PASSWORD
+            - name: MYSQL_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: secret
+                  key: MYSQL_USERNAME
+            - name: MYSQL_PASSWORD
+              valueFrom: 
+                secretKeyRef:
+                  name: secret
+                  key: MYSQL_PASSWORD 
+            - name: JWT_ACCESS_SECRET
+              valueFrom: 
+                secretKeyRef:
+                  name: secret
+                  key: JWT_ACCESS_SECRET
+            - name: JWT_REFRESH_SECRET
+              valueFrom: 
+                secretKeyRef:
+                  name: secret
+                  key: JWT_REFRESH_SECRET
+            - name: TOSS_PAYMENT_SECRET
+              valueFrom: 
+                secretKeyRef:
+                  name: secret
+                  key: TOSS_PAYMENT_SECRET
+            - name: SENDER
+              valueFrom: 
+                secretKeyRef:
+                  name: secret
+                  key: SENDER
+            - name: GMAIL_PASSWORD
+              valueFrom: 
+                secretKeyRef:
+                  name: secret
+                  key: GMAIL_PASSWORD
+            - name: EMAIL_TEST_CODE
+              valueFrom: 
+                secretKeyRef:
+                  name: secret
+                  key: EMAIL_TEST_CODE
+          resources:
+            requests:
+              memory: 1Gi
+        
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+spec:
+  selector:
+    app: backend
+  ports:
+    - port: 8080
+      targetPort: 8080
