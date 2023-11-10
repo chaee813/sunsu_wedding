@@ -16,6 +16,12 @@ spec:
         - name: frontend
           # 여러분의 frontend image 주소를 입력해주세요.
           image: krmp-d2hub-idock.9rum.cc/dev-test/repo_57108b3acf39
+          env:
+            - name: REACT_APP_TOSS_CLIENT_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: secret
+                  key: REACT_APP_TOSS_CLIENT_KEY
 ---
 apiVersion: v1
 kind: Service
