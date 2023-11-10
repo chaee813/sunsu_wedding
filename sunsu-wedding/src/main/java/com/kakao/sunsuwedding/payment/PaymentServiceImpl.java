@@ -9,16 +9,24 @@ import com.kakao.sunsuwedding.user.base_user.UserJPARepository;
 import com.kakao.sunsuwedding.user.constant.Grade;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
+import org.springframework.http.*;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.util.UriComponentsBuilder;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.transport.ProxyProvider;
 
+import java.net.InetSocketAddress;
+import java.net.Proxy;
 import java.time.Duration;
 import java.util.*;
 
@@ -30,6 +38,8 @@ public class PaymentServiceImpl implements PaymentService {
 
     private final PaymentJPARepository paymentJPARepository;
     private final UserJPARepository userJPARepository;
+
+    private final RestTemplate restTemplate = new RestTemplate();
 
     @Value("${payment.toss.secret}")
     private String secretKey;
@@ -91,13 +101,31 @@ public class PaymentServiceImpl implements PaymentService {
         // 토스페이먼츠 승인 api 요청
         String basicToken = "Basic " + Base64.getEncoder().encodeToString((secretKey + ":").getBytes());
 
-        Map<String, String> parameters = new HashMap<>();
-        parameters.put("paymentKey", requestDTO.paymentKey());
-        parameters.put("orderId", requestDTO.orderId());
-        parameters.put("amount", requestDTO.amount().toString());
+        MultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();
+        parameters.add("paymentKey", requestDTO.paymentKey());
+        parameters.add("orderId", requestDTO.orderId());
+        parameters.add("amount", requestDTO.amount().toString());
 
         log.debug("EXECUTED6");
+        Proxy proxy = new Proxy(java.net.Proxy.Type.HTTP,
+                new InetSocketAddress("http://krmp-proxy.9rum.cc",3128));
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setProxy(proxy);
+        log.debug("EXECUTED7");
+        try {
+            UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl("https://api.tosspayments.com/v1/payments/confirm");
+            uriBuilder.queryParams(parameters);
+            HttpHeaders headers = new HttpHeaders();
+            HttpEntity entity = new HttpEntity(headers);
+            log.debug("EXECUTED8");
+            ResponseEntity<Map> resultMap = restTemplate.exchange(uriBuilder.build().toUri(), HttpMethod.POST, entity, Map.class);
+            resultMap.getHeaders();
+            resultMap.getBody();
+        } catch (Exception e) {
+            throw new ServerException(BaseException.PAYMENT_FAIL);
+        }
 
+        /*
         HttpClient httpClient = HttpClient.create()
                 .proxy(it ->
                         it.type(ProxyProvider.Proxy.HTTP)
@@ -106,6 +134,7 @@ public class PaymentServiceImpl implements PaymentService {
                 )
                 .responseTimeout(Duration.ofMillis(20000))
                 .proxyWithSystemProperties();
+
 
         log.debug("EXECUTED7");
 
@@ -131,8 +160,9 @@ public class PaymentServiceImpl implements PaymentService {
                             throw new ServerException(BaseException.PAYMENT_FAIL);
                         })
                         .block();
+         */
         log.debug("EXECUTED9");
-        log.debug("result = " ,result);
+        log.debug("result = ");
     }
 
     // 받아온 payment와 관련된 데이터(orderId, amount)가 정확한지 확인)
