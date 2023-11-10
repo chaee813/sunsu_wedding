@@ -33,6 +33,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
     implementation 'org.springframework.boot:spring-boot-starter-mail'
+    implementation group: 'org.json', name: 'json', version: '20090211'
     compileOnly 'org.projectlombok:lombok'
     // kargo
     runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
