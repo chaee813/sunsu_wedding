@@ -120,6 +120,7 @@ public class PaymentServiceImpl implements PaymentService {
             HttpHeaders headers = new HttpHeaders();
             headers.setBasicAuth(basicToken);
             headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
 
             log.debug("EXECUTED8");
             log.debug(new HttpEntity<>(parameters,headers).toString());
