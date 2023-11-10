@@ -19,6 +19,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.transport.ProxyProvider;
 
+import java.time.Duration;
 import java.util.*;
 
 @Slf4j
@@ -36,13 +37,15 @@ public class PaymentServiceImpl implements PaymentService {
     // 결제와 관련된 정보를 user에 저장함
     @Transactional
     public void save(Long userId, PaymentRequest.SaveDTO requestDTO){
+        log.debug("\nSAVE EXECUTED 1\n");
         User user = findUserById(userId);
         Optional<Payment> paymentOptional = paymentJPARepository.findByUserId(userId);
-
+        log.debug("\nSAVE EXECUTED 2\n");
         // 사용자의 결제 정보가 존재하면 업데이트
         if (paymentOptional.isPresent()){
             Payment payment = paymentOptional.get();
             payment.updatePaymentInfo(requestDTO.orderId(), requestDTO.amount());
+            log.debug("\nSAVE EXECUTED 3\n");
         }
         else {
             // 결제 정보 저장
@@ -52,21 +55,26 @@ public class PaymentServiceImpl implements PaymentService {
                     .payedAmount(requestDTO.amount())
                     .build();
             paymentJPARepository.save(payment);
+            log.debug("\nSAVE EXECUTED 4\n");
         }
+        log.debug("\nSAVE EXECUTED 5\n");
     }
 
     @Transactional
     public void approve(Long userId, PaymentRequest.ApproveDTO requestDTO) {
+        log.debug("\nEXECUTED1\n");
         User user = findUserById(userId);
+        log.debug("\nEXECUTED2\n");
         Payment payment = findPaymentByUserId(user.getId());
+        log.debug("\nEXECUTED3\n");
 
         //  1. 검증: 프론트 정보와 백엔드 정보 비교
         Boolean isOK = isCorrectData(payment, requestDTO.orderId(), requestDTO.amount());
-
+        log.debug("\nEXECUTED4\n");
         if (!isOK) {
             throw new BadRequestException(BaseException.PAYMENT_WRONG_INFORMATION);
         }
-
+        log.debug("\nEXECUTED5\n");
         payment.updatePaymentKey(requestDTO.paymentKey());
         // 2. 토스 페이먼츠 승인 요청
         tossPayApprove(requestDTO);
@@ -85,9 +93,7 @@ public class PaymentServiceImpl implements PaymentService {
         parameters.put("orderId", requestDTO.orderId());
         parameters.put("amount", requestDTO.amount().toString());
 
-        log.debug("\n");
-        log.debug("EXECUTED1");
-        log.debug("\n");
+        log.debug("\nEXECUTED6\n");
 
         HttpClient httpClient = HttpClient.create()
                 .proxy(it ->
@@ -95,11 +101,10 @@ public class PaymentServiceImpl implements PaymentService {
                                 .host("http://krmp-proxy.9rum.cc")
                                 .port(3128)
                 )
+                .responseTimeout(Duration.ofMillis(20000))
                 .proxyWithSystemProperties();
 
-        log.debug("\n");
-        log.debug("EXECUTED2");
-        log.debug("\n");
+        log.debug("\nEXECUTED7\n");
 
         WebClient webClient =
                 WebClient
@@ -107,9 +112,7 @@ public class PaymentServiceImpl implements PaymentService {
                         .clientConnector(new ReactorClientHttpConnector(httpClient))
                         .baseUrl("https://api.tosspayments.com")
                         .build();
-        log.debug("\n");
-        log.debug("EXECUTED3");
-        log.debug("\n");
+        log.debug("\nEXECUTED8\n");
         TossPaymentResponse.TosspayDTO result =
                 webClient
                         .post()
