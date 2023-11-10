@@ -130,6 +130,7 @@ public class PaymentServiceImpl implements PaymentService {
         } catch (Exception e) {
             log.debug(e.getMessage());
             log.debug(e.getLocalizedMessage());
+            log.debug(e.getStackTrace().toString());
             throw new ServerException(BaseException.PAYMENT_FAIL);
         }
 
