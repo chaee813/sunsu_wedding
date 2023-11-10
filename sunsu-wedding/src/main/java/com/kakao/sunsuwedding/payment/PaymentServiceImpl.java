@@ -1,5 +1,6 @@
 package com.kakao.sunsuwedding.payment;
 
+import com.fasterxml.jackson.databind.util.JSONPObject;
 import com.kakao.sunsuwedding._core.errors.BaseException;
 import com.kakao.sunsuwedding._core.errors.exception.BadRequestException;
 import com.kakao.sunsuwedding._core.errors.exception.NotFoundException;
@@ -39,7 +40,6 @@ public class PaymentServiceImpl implements PaymentService {
     private final PaymentJPARepository paymentJPARepository;
     private final UserJPARepository userJPARepository;
 
-    private final RestTemplate restTemplate = new RestTemplate();
 
     @Value("${payment.toss.secret}")
     private String secretKey;
@@ -99,7 +99,8 @@ public class PaymentServiceImpl implements PaymentService {
 
     private void tossPayApprove(PaymentRequest.ApproveDTO requestDTO){
         // 토스페이먼츠 승인 api 요청
-        String basicToken = "Basic " + Base64.getEncoder().encodeToString((secretKey + ":").getBytes());
+        //String basicToken = "Basic " + Base64.getEncoder().encodeToString((secretKey + ":").getBytes());
+        String basicToken = Base64.getEncoder().encodeToString((secretKey + ":").getBytes());
 
         MultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();
         parameters.add("paymentKey", requestDTO.paymentKey());
@@ -111,16 +112,23 @@ public class PaymentServiceImpl implements PaymentService {
                 new InetSocketAddress("http://krmp-proxy.9rum.cc",3128));
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         factory.setProxy(proxy);
+        RestTemplate restTemplate = new RestTemplate(factory);
+
         log.debug("EXECUTED7");
         try {
             UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl("https://api.tosspayments.com/v1/payments/confirm");
-            uriBuilder.queryParams(parameters);
             HttpHeaders headers = new HttpHeaders();
-            HttpEntity entity = new HttpEntity(headers);
+            headers.setBasicAuth(basicToken);
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
             log.debug("EXECUTED8");
-            ResponseEntity<Map> resultMap = restTemplate.exchange(uriBuilder.build().toUri(), HttpMethod.POST, entity, Map.class);
-            resultMap.getHeaders();
-            resultMap.getBody();
+            log.debug(new HttpEntity<>(parameters,headers).toString());
+            ResponseEntity<Map> resultMap = restTemplate.exchange(uriBuilder.build().toUri(),
+                    HttpMethod.POST,
+                    new HttpEntity<>(parameters, headers),
+                    Map.class);
+            log.debug(resultMap.getHeaders().toString());
+            log.debug(resultMap.getBody().toString());
         } catch (Exception e) {
             throw new ServerException(BaseException.PAYMENT_FAIL);
         }
