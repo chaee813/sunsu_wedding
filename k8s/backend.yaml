@@ -51,6 +51,16 @@ spec:
                 secretKeyRef:
                   name: secret
                   key: TOSS_PAYMENT_SECRET
+            - name: SENDER
+              valueFrom: 
+                secretKeyRef:
+                  name: secret
+                  key: SENDER
+            - name: GMAIL_PASSWORD
+              valueFrom: 
+                secretKeyRef:
+                  name: secret
+                  key: GMAIL_PASSWORD
             - name: EMAIL_TEST_CODE
               valueFrom: 
                 secretKeyRef:
