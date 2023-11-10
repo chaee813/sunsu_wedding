@@ -62,26 +62,29 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Transactional
     public void approve(Long userId, PaymentRequest.ApproveDTO requestDTO) {
-        log.debug("\nEXECUTED1\n");
+        log.debug("EXECUTED1");
         User user = findUserById(userId);
-        log.debug("\nEXECUTED2\n");
+        log.debug("EXECUTED2");
         Payment payment = findPaymentByUserId(user.getId());
-        log.debug("\nEXECUTED3\n");
+        log.debug("EXECUTED3");
 
         //  1. 검증: 프론트 정보와 백엔드 정보 비교
         Boolean isOK = isCorrectData(payment, requestDTO.orderId(), requestDTO.amount());
-        log.debug("\nEXECUTED4\n");
+        log.debug("EXECUTED4");
         if (!isOK) {
             throw new BadRequestException(BaseException.PAYMENT_WRONG_INFORMATION);
         }
-        log.debug("\nEXECUTED5\n");
+        log.debug("EXECUTED5");
         payment.updatePaymentKey(requestDTO.paymentKey());
         // 2. 토스 페이먼츠 승인 요청
         tossPayApprove(requestDTO);
+        log.debug("EXECUTED10");
         // 3. 유저 업그레이드
         user.upgrade();
+        log.debug("EXECUTED11");
         // 4. 결제시간 업데이트
         payment.updatePayedAt();
+        log.debug("EXECUTED12");
     }
 
     private void tossPayApprove(PaymentRequest.ApproveDTO requestDTO){
@@ -93,7 +96,7 @@ public class PaymentServiceImpl implements PaymentService {
         parameters.put("orderId", requestDTO.orderId());
         parameters.put("amount", requestDTO.amount().toString());
 
-        log.debug("\nEXECUTED6\n");
+        log.debug("EXECUTED6");
 
         HttpClient httpClient = HttpClient.create()
                 .proxy(it ->
@@ -104,7 +107,7 @@ public class PaymentServiceImpl implements PaymentService {
                 .responseTimeout(Duration.ofMillis(20000))
                 .proxyWithSystemProperties();
 
-        log.debug("\nEXECUTED7\n");
+        log.debug("EXECUTED7");
 
         WebClient webClient =
                 WebClient
@@ -112,7 +115,7 @@ public class PaymentServiceImpl implements PaymentService {
                         .clientConnector(new ReactorClientHttpConnector(httpClient))
                         .baseUrl("https://api.tosspayments.com")
                         .build();
-        log.debug("\nEXECUTED8\n");
+        log.debug("EXECUTED8");
         TossPaymentResponse.TosspayDTO result =
                 webClient
                         .post()
@@ -128,9 +131,8 @@ public class PaymentServiceImpl implements PaymentService {
                             throw new ServerException(BaseException.PAYMENT_FAIL);
                         })
                         .block();
-        log.debug("\n");
+        log.debug("EXECUTED9");
         log.debug("result = " ,result);
-        log.debug("\n");
     }
 
     // 받아온 payment와 관련된 데이터(orderId, amount)가 정확한지 확인)
