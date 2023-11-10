@@ -122,6 +122,7 @@ public class PaymentServiceImpl implements PaymentService {
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         factory.setProxy(proxy);
         RestTemplate restTemplate = new RestTemplate(factory);
+        log.debug(new HttpEntity<>(parameters,headers).toString());
         try {
             restTemplate.postForEntity("https://api.tosspayments.com/v1/payments/confirm",
                     new HttpEntity<>(parameters, headers),
