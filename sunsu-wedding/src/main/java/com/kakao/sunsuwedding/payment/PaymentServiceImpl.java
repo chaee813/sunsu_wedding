@@ -8,6 +8,7 @@ import com.kakao.sunsuwedding.user.base_user.User;
 import com.kakao.sunsuwedding.user.base_user.UserJPARepository;
 import com.kakao.sunsuwedding.user.constant.Grade;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -20,6 +21,7 @@ import reactor.netty.transport.ProxyProvider;
 
 import java.util.*;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -113,6 +115,9 @@ public class PaymentServiceImpl implements PaymentService {
                             throw new ServerException(BaseException.PAYMENT_FAIL);
                         })
                         .block();
+        log.debug("\n");
+        log.debug("result = " ,result);
+        log.debug("\n");
     }
 
     // 받아온 payment와 관련된 데이터(orderId, amount)가 정확한지 확인)
