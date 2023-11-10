@@ -135,7 +135,6 @@ public class PaymentServiceImpl implements PaymentService {
             log.debug(resultMap.getHeaders().toString());
             log.debug(resultMap.getBody().toString());
         } catch (Exception e) {
-            log.debug(e.getCause().toString());
             log.debug(e.getMessage());
             log.debug(e.getLocalizedMessage());
             throw new ServerException(BaseException.PAYMENT_FAIL);
