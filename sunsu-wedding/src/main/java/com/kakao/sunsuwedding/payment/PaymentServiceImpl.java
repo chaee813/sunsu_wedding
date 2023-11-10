@@ -1,5 +1,6 @@
 package com.kakao.sunsuwedding.payment;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.util.JSONPObject;
 import com.kakao.sunsuwedding._core.errors.BaseException;
 import com.kakao.sunsuwedding._core.errors.exception.BadRequestException;
@@ -10,6 +11,7 @@ import com.kakao.sunsuwedding.user.base_user.UserJPARepository;
 import com.kakao.sunsuwedding.user.constant.Grade;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -39,6 +41,8 @@ public class PaymentServiceImpl implements PaymentService {
 
     private final PaymentJPARepository paymentJPARepository;
     private final UserJPARepository userJPARepository;
+
+    private final ObjectMapper om;
 
 
     @Value("${payment.toss.secret}")
@@ -102,10 +106,10 @@ public class PaymentServiceImpl implements PaymentService {
         //String basicToken = "Basic " + Base64.getEncoder().encodeToString((secretKey + ":").getBytes());
         String basicToken = Base64.getEncoder().encodeToString((secretKey + ":").getBytes());
 
-        MultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();
-        parameters.add("paymentKey", requestDTO.paymentKey());
-        parameters.add("orderId", requestDTO.orderId());
-        parameters.add("amount", requestDTO.amount().toString());
+        JSONObject parameters = new JSONObject();
+        parameters.put("orderId", requestDTO.orderId());
+        parameters.put("paymentKey", requestDTO.paymentKey());
+        parameters.put("amount",requestDTO.amount());
 
         log.debug("EXECUTED6");
         Proxy proxy = new Proxy(java.net.Proxy.Type.HTTP,
@@ -131,6 +135,7 @@ public class PaymentServiceImpl implements PaymentService {
             log.debug(resultMap.getHeaders().toString());
             log.debug(resultMap.getBody().toString());
         } catch (Exception e) {
+            log.debug(e.getCause().toString());
             log.debug(e.getMessage());
             log.debug(e.getLocalizedMessage());
             throw new ServerException(BaseException.PAYMENT_FAIL);
