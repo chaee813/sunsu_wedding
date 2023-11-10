@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -82,7 +83,7 @@ public class PaymentServiceImpl implements PaymentService {
         parameters.put("orderId", requestDTO.orderId());
         parameters.put("amount", requestDTO.amount().toString());
 
-         HttpClient httpClient = HttpClient.create()
+        HttpClient httpClient = HttpClient.create()
                 .proxy(it ->
                         it.type(ProxyProvider.Proxy.HTTP)
                                 .host("http://krmp-proxy.9rum.cc")
@@ -93,6 +94,7 @@ public class PaymentServiceImpl implements PaymentService {
         WebClient webClient =
                 WebClient
                         .builder()
+                        .clientConnector(new ReactorClientHttpConnector(httpClient))
                         .baseUrl("https://api.tosspayments.com")
                         .build();
 
