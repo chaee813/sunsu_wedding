@@ -140,11 +140,11 @@ public class SecurityConfig {
         configuration.addAllowedMethod(HttpMethod.PUT);
         configuration.addAllowedMethod(HttpMethod.DELETE);
 
-        configuration.addAllowedOriginPattern("http://localhost:3000");
-        configuration.addAllowedOriginPattern("http://127.0.0.1:3000");
-        configuration.addAllowedOriginPattern("https://k6f3d3b1a0696a.user-app.krampoline.com");
-        configuration.addAllowedOriginPattern("https://k5c1813d97f50a.user-app.krampoline.com");
-        configuration.addAllowedOriginPattern("https://k06502d46255fa.user-app.krampoline.com");
+        configuration.addAllowedOriginPattern("*");
+        //configuration.addAllowedOriginPattern("http://127.0.0.1:3000");
+        //configuration.addAllowedOriginPattern("https://k6f3d3b1a0696a.user-app.krampoline.com");
+        //configuration.addAllowedOriginPattern("https://k5c1813d97f50a.user-app.krampoline.com");
+        //configuration.addAllowedOriginPattern("https://k06502d46255fa.user-app.krampoline.com");
 
         configuration.setAllowCredentials(true);
 
