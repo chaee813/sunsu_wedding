@@ -109,7 +109,7 @@ public class PaymentServiceImpl implements PaymentService {
 
         log.debug("EXECUTED6");
         Proxy proxy = new Proxy(java.net.Proxy.Type.HTTP,
-                new InetSocketAddress("http://krmp-proxy.9rum.cc",3128));
+                new InetSocketAddress("krmp-proxy.9rum.cc",3128));
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         factory.setProxy(proxy);
         RestTemplate restTemplate = new RestTemplate(factory);
