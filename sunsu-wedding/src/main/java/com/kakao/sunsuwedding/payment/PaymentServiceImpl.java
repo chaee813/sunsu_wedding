@@ -111,20 +111,32 @@ public class PaymentServiceImpl implements PaymentService {
         parameters.put("paymentKey", requestDTO.paymentKey());
         parameters.put("amount",requestDTO.amount());
 
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBasicAuth(basicToken);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+
         log.debug("EXECUTED6");
         Proxy proxy = new Proxy(java.net.Proxy.Type.HTTP,
                 new InetSocketAddress("krmp-proxy.9rum.cc",3128));
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         factory.setProxy(proxy);
         RestTemplate restTemplate = new RestTemplate(factory);
+        try {
+            restTemplate.postForEntity("https://api.tosspayments.com/v1/payments/confirm",
+                    new HttpEntity<>(parameters, headers),
+                    String.class);
+        } catch (Exception e) {
+            log.debug(e.getMessage());
+            log.debug(e.getLocalizedMessage());
+            throw new ServerException(BaseException.PAYMENT_FAIL);
+        }
 
         log.debug("EXECUTED7");
+        /*
         try {
             UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl("https://api.tosspayments.com/v1/payments/confirm");
-            HttpHeaders headers = new HttpHeaders();
-            headers.setBasicAuth(basicToken);
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+
 
             log.debug("EXECUTED8");
             log.debug(new HttpEntity<>(parameters,headers).toString());
@@ -139,6 +151,7 @@ public class PaymentServiceImpl implements PaymentService {
             log.debug(e.getLocalizedMessage());
             throw new ServerException(BaseException.PAYMENT_FAIL);
         }
+         */
 
         /*
         HttpClient httpClient = HttpClient.create()
