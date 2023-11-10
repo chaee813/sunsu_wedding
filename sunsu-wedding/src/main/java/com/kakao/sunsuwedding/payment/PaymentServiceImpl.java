@@ -85,6 +85,10 @@ public class PaymentServiceImpl implements PaymentService {
         parameters.put("orderId", requestDTO.orderId());
         parameters.put("amount", requestDTO.amount().toString());
 
+        log.debug("\n");
+        log.debug("EXECUTED1");
+        log.debug("\n");
+
         HttpClient httpClient = HttpClient.create()
                 .proxy(it ->
                         it.type(ProxyProvider.Proxy.HTTP)
@@ -93,13 +97,19 @@ public class PaymentServiceImpl implements PaymentService {
                 )
                 .proxyWithSystemProperties();
 
+        log.debug("\n");
+        log.debug("EXECUTED2");
+        log.debug("\n");
+
         WebClient webClient =
                 WebClient
                         .builder()
                         .clientConnector(new ReactorClientHttpConnector(httpClient))
                         .baseUrl("https://api.tosspayments.com")
                         .build();
-
+        log.debug("\n");
+        log.debug("EXECUTED3");
+        log.debug("\n");
         TossPaymentResponse.TosspayDTO result =
                 webClient
                         .post()
