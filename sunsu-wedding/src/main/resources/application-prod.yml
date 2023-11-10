@@ -22,3 +22,9 @@ spring:
         format_sql: true
       default_batch_fetch_size: 100
     open-in-view: false
+
+logging:
+  level:
+    '[com.kakao.sunsuwedding]': DEBUG
+    '[org.hibernate.type]': TRACE
+    org.springframework.jdbc.core.JdbcTemplate: DEBUG
