@@ -94,8 +94,8 @@ public class PaymentServiceImpl implements PaymentService {
 
     private void tossPayApprove(PaymentRequest.ApproveDTO requestDTO){
         // 토스페이먼츠 승인 api 요청
-        //String basicToken = "Basic " + Base64.getEncoder().encodeToString((secretKey + ":").getBytes());
-        String basicToken = Base64.getEncoder().encodeToString((secretKey + ":").getBytes());
+        String basicToken = "Basic " + Base64.getEncoder().encodeToString((secretKey + ":").getBytes());
+        //String basicToken = Base64.getEncoder().encodeToString((secretKey + ":").getBytes());
 
         /*
         JSONObject parameters = new JSONObject();
@@ -103,7 +103,7 @@ public class PaymentServiceImpl implements PaymentService {
         parameters.put("paymentKey", requestDTO.paymentKey());
         parameters.put("amount",requestDTO.amount());
         */
-
+        /*
         HttpHeaders headers = new HttpHeaders();
         headers.setBasicAuth(basicToken);
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -128,6 +128,8 @@ public class PaymentServiceImpl implements PaymentService {
         }
 
         log.debug("EXECUTED7");
+
+         */
         /*
         try {
             UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl("https://api.tosspayments.com/v1/payments/confirm");
@@ -147,12 +149,15 @@ public class PaymentServiceImpl implements PaymentService {
             throw new ServerException(BaseException.PAYMENT_FAIL);
         }
          */
+        Map<String, String> parameters = new HashMap<>();
+        parameters.put("paymentKey", requestDTO.paymentKey());
+        parameters.put("orderId", requestDTO.orderId());
+        parameters.put("amount", requestDTO.amount().toString());
 
-        /*
         HttpClient httpClient = HttpClient.create()
                 .proxy(it ->
                         it.type(ProxyProvider.Proxy.HTTP)
-                                .host("http://krmp-proxy.9rum.cc")
+                                .host("krmp-proxy.9rum.cc")
                                 .port(3128)
                 )
                 .responseTimeout(Duration.ofMillis(20000))
@@ -183,7 +188,6 @@ public class PaymentServiceImpl implements PaymentService {
                             throw new ServerException(BaseException.PAYMENT_FAIL);
                         })
                         .block();
-         */
         log.debug("EXECUTED9");
         log.debug("result = ");
     }
