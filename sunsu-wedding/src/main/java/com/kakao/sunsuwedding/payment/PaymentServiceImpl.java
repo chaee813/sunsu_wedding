@@ -51,15 +51,12 @@ public class PaymentServiceImpl implements PaymentService {
     // 결제와 관련된 정보를 user에 저장함
     @Transactional
     public void save(Long userId, PaymentRequest.SaveDTO requestDTO){
-        log.debug("\nSAVE EXECUTED 1\n");
         User user = findUserById(userId);
         Optional<Payment> paymentOptional = paymentJPARepository.findByUserId(userId);
-        log.debug("\nSAVE EXECUTED 2\n");
         // 사용자의 결제 정보가 존재하면 업데이트
         if (paymentOptional.isPresent()){
             Payment payment = paymentOptional.get();
             payment.updatePaymentInfo(requestDTO.orderId(), requestDTO.amount());
-            log.debug("\nSAVE EXECUTED 3\n");
         }
         else {
             // 결제 정보 저장
@@ -69,22 +66,16 @@ public class PaymentServiceImpl implements PaymentService {
                     .payedAmount(requestDTO.amount())
                     .build();
             paymentJPARepository.save(payment);
-            log.debug("\nSAVE EXECUTED 4\n");
         }
-        log.debug("\nSAVE EXECUTED 5\n");
     }
 
     @Transactional
     public void approve(Long userId, PaymentRequest.ApproveDTO requestDTO) {
-        log.debug("EXECUTED1");
         User user = findUserById(userId);
-        log.debug("EXECUTED2");
         Payment payment = findPaymentByUserId(user.getId());
-        log.debug("EXECUTED3");
 
         //  1. 검증: 프론트 정보와 백엔드 정보 비교
         Boolean isOK = isCorrectData(payment, requestDTO.orderId(), requestDTO.amount());
-        log.debug("EXECUTED4");
         if (!isOK) {
             throw new BadRequestException(BaseException.PAYMENT_WRONG_INFORMATION);
         }
@@ -106,26 +97,28 @@ public class PaymentServiceImpl implements PaymentService {
         //String basicToken = "Basic " + Base64.getEncoder().encodeToString((secretKey + ":").getBytes());
         String basicToken = Base64.getEncoder().encodeToString((secretKey + ":").getBytes());
 
+        /*
         JSONObject parameters = new JSONObject();
         parameters.put("orderId", requestDTO.orderId());
         parameters.put("paymentKey", requestDTO.paymentKey());
         parameters.put("amount",requestDTO.amount());
+        */
 
         HttpHeaders headers = new HttpHeaders();
         headers.setBasicAuth(basicToken);
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
 
-        log.debug("EXECUTED6");
         Proxy proxy = new Proxy(java.net.Proxy.Type.HTTP,
                 new InetSocketAddress("krmp-proxy.9rum.cc",3128));
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         factory.setProxy(proxy);
         RestTemplate restTemplate = new RestTemplate(factory);
-        log.debug(new HttpEntity<>(parameters,headers).toString());
+        log.debug(new HttpEntity<>(requestDTO,headers).toString());
+
         try {
             restTemplate.postForEntity("https://api.tosspayments.com/v1/payments/confirm",
-                    new HttpEntity<>(parameters, headers),
+                    new HttpEntity<>(requestDTO, headers),
                     String.class);
         } catch (Exception e) {
             log.debug(e.getMessage());
