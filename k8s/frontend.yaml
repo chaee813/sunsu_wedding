@@ -15,7 +15,7 @@ spec:
       containers:
         - name: frontend
           # 여러분의 frontend image 주소를 입력해주세요.
-          image: krmp-d2hub-idock.9rum.cc/dev-test/repo_1623f2baa3e4
+          image: krmp-d2hub-idock.9rum.cc/dev-test/repo_0f4f85bc1afd
           env:
             - name: REACT_APP_TOSS_CLIENT_KEY
               valueFrom:
