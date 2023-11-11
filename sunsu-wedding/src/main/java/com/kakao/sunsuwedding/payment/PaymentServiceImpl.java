@@ -1,7 +1,6 @@
 package com.kakao.sunsuwedding.payment;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.util.JSONPObject;
 import com.kakao.sunsuwedding._core.errors.BaseException;
 import com.kakao.sunsuwedding._core.errors.exception.BadRequestException;
 import com.kakao.sunsuwedding._core.errors.exception.NotFoundException;
@@ -11,27 +10,21 @@ import com.kakao.sunsuwedding.user.base_user.UserJPARepository;
 import com.kakao.sunsuwedding.user.constant.Grade;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
-import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.util.UriComponentsBuilder;
-import reactor.netty.http.client.HttpClient;
-import reactor.netty.transport.ProxyProvider;
 
 import java.net.InetSocketAddress;
 import java.net.Proxy;
-import java.time.Duration;
-import java.util.*;
+import java.util.Base64;
+import java.util.Collections;
+import java.util.Objects;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -79,31 +72,19 @@ public class PaymentServiceImpl implements PaymentService {
         if (!isOK) {
             throw new BadRequestException(BaseException.PAYMENT_WRONG_INFORMATION);
         }
-        log.debug("EXECUTED5");
         payment.updatePaymentKey(requestDTO.paymentKey());
         // 2. 토스 페이먼츠 승인 요청
         tossPayApprove(requestDTO);
-        log.debug("EXECUTED10");
         // 3. 유저 업그레이드
         user.upgrade();
-        log.debug("EXECUTED11");
         // 4. 결제시간 업데이트
         payment.updatePayedAt();
-        log.debug("EXECUTED12");
     }
 
     private void tossPayApprove(PaymentRequest.ApproveDTO requestDTO){
         // 토스페이먼츠 승인 api 요청
-        String basicToken = "Basic " + Base64.getEncoder().encodeToString((secretKey + ":").getBytes());
-        //String basicToken = Base64.getEncoder().encodeToString((secretKey + ":").getBytes());
-
-        /*
-        JSONObject parameters = new JSONObject();
-        parameters.put("orderId", requestDTO.orderId());
-        parameters.put("paymentKey", requestDTO.paymentKey());
-        parameters.put("amount",requestDTO.amount());
-        */
-        /*
+        String basicToken = Base64.getEncoder().encodeToString((secretKey + ":").getBytes());
+        
         HttpHeaders headers = new HttpHeaders();
         headers.setBasicAuth(basicToken);
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -114,82 +95,14 @@ public class PaymentServiceImpl implements PaymentService {
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         factory.setProxy(proxy);
         RestTemplate restTemplate = new RestTemplate(factory);
-        log.debug(new HttpEntity<>(requestDTO,headers).toString());
 
         try {
             restTemplate.postForEntity("https://api.tosspayments.com/v1/payments/confirm",
                     new HttpEntity<>(requestDTO, headers),
                     String.class);
         } catch (Exception e) {
-            log.debug(e.getMessage());
-            log.debug(e.getLocalizedMessage());
-            log.debug(e.getStackTrace().toString());
             throw new ServerException(BaseException.PAYMENT_FAIL);
         }
-
-        log.debug("EXECUTED7");
-
-         */
-        /*
-        try {
-            UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl("https://api.tosspayments.com/v1/payments/confirm");
-
-
-            log.debug("EXECUTED8");
-            log.debug(new HttpEntity<>(parameters,headers).toString());
-            ResponseEntity<Map> resultMap = restTemplate.exchange(uriBuilder.build().toUri(),
-                    HttpMethod.POST,
-                    new HttpEntity<>(parameters, headers),
-                    Map.class);
-            log.debug(resultMap.getHeaders().toString());
-            log.debug(resultMap.getBody().toString());
-        } catch (Exception e) {
-            log.debug(e.getMessage());
-            log.debug(e.getLocalizedMessage());
-            throw new ServerException(BaseException.PAYMENT_FAIL);
-        }
-         */
-        Map<String, String> parameters = new HashMap<>();
-        parameters.put("paymentKey", requestDTO.paymentKey());
-        parameters.put("orderId", requestDTO.orderId());
-        parameters.put("amount", requestDTO.amount().toString());
-
-        HttpClient httpClient = HttpClient.create()
-                .proxy(it ->
-                        it.type(ProxyProvider.Proxy.HTTP)
-                                .host("krmp-proxy.9rum.cc")
-                                .port(3128)
-                )
-                .responseTimeout(Duration.ofMillis(20000))
-                .proxyWithSystemProperties();
-
-
-        log.debug("EXECUTED7");
-
-        WebClient webClient =
-                WebClient
-                        .builder()
-                        .clientConnector(new ReactorClientHttpConnector(httpClient))
-                        .baseUrl("https://api.tosspayments.com")
-                        .build();
-        log.debug("EXECUTED8");
-        TossPaymentResponse.TosspayDTO result =
-                webClient
-                        .post()
-                        .uri("/v1/payments/confirm")
-                        .headers(headers -> {
-                            headers.add(HttpHeaders.AUTHORIZATION, basicToken);
-                            headers.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
-                        })
-                        .bodyValue(parameters)
-                        .retrieve()
-                        .bodyToMono(TossPaymentResponse.TosspayDTO.class)
-                        .onErrorResume(e -> {
-                            throw new ServerException(BaseException.PAYMENT_FAIL);
-                        })
-                        .block();
-        log.debug("EXECUTED9");
-        log.debug("result = ");
     }
 
     // 받아온 payment와 관련된 데이터(orderId, amount)가 정확한지 확인)
